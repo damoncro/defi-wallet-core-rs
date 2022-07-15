@@ -3,8 +3,25 @@ use anyhow::Result;
 use common::get_contract_balance;
 use common::node::ethereum;
 use common::EthNetwork;
+use common::{node::abi::EthAbiToken, EthAbiContract};
 use defi_wallet_core_common as common;
 use ethers::providers::DEFAULT_POLL_INTERVAL;
+
+pub struct AbiContract {
+    contract: EthAbiContract,
+}
+
+fn new_abi_contract(abi_contract: &str) -> Result<AbiContract> {
+    Ok(AbiContract {
+        contract: EthAbiContract::new(abi_contract)?,
+    })
+}
+
+impl AbiContract {
+    pub fn encode(&self, function_name: &str, tokens: Vec<EthAbiToken>) -> Result<Vec<u8>> {
+        Ok(self.contract.encode(function_name, tokens)?)
+    }
+}
 
 /// Construct an Erc20 struct
 fn new_erc20(contract_address: String, web3api_url: String, chain_id: u64) -> ffi::Erc20 {
@@ -623,6 +640,7 @@ mod ffi {
     }
 
     extern "Rust" {
+        type AbiContract;
         /// Construct an Erc20 struct
         /// ```
         /// Erc20 erc20 = new_erc20("0xf0307093f23311FE6776a7742dB619EB3df62969",
